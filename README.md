@@ -28,18 +28,18 @@ configuration/
   ├── jsonkeyvalues/
   ├── locations/
   ├── messageproperties/
-  ├── metadatasetmembers/ 
-  ├── metadatasets/ 
-  ├── metadatasharing/ 
-  ├── metadatatermmappings/ 
-  ├── patientidentifiertypes/ 
-  ├── personattributetypes/ 
-  ├── privileges/ 
-  ├── programs/ 
+  ├── metadatasetmembers/
+  ├── metadatasets/
+  ├── metadatasharing/
+  ├── metadatatermmappings/
+  ├── patientidentifiertypes/
+  ├── personattributetypes/
+  ├── privileges/
+  ├── programs/
   ├── programworkflows/
   ├── programworkflowstates/
   └── roles/
-   
+
 ```  
 Each domain-specific subfolder contains the metadata and configuration information that is relevant to the subfolder's domain. Although several file types are supported for providing metadata, CSV files are the preferred format and all domain should aim at being covered through parsing CSV files.
 
@@ -90,6 +90,53 @@ Build the master branch and install the built OMOD to your OpenMRS instance:
 git clone https://github.com/mekomsolutions/openmrs-module-initializer/tree/master
 cd openmrs-module-initializer
 mvn clean package
+```
+<details><summary>OPTIONAL: Generate the OMOD using Docker</summary>
+<p>
+On your host machine
+
+```bash
+docker run --rm -it maven:3.6.3-jdk-8 bash
+## remove the --rm argument to make the container persistent
+```
+In the container CLI (using Docker desktop app for example)
+```bash
+git clone https://github.com/mekomsolutions/openmrs-module-initializer.git
+cd openmrs-module-initializer
+mvn clean install OR mvn clean install
+## Use the -rf argument if necessary - For example: -rf :initializer-api-2.3
+```
+Back on your host machine, use `docker cp` command to copy the generated OMOD out of the container, for example:
+```bash
+docker cp <DockerContainerID>:/openmrs-module-initializer/omod/target/initializer-1.2.0-SNAPSHOT.omod initializer-1.2.0-SNAPSHOT.omod
+```
+Add the OMOD to your OpenMRS installation (Vagrant or on a server for example)
+```bash
+sudo cp /bahmni/initializer-1.2.0-SNAPSHOT.omod /opt/openmrs/modules/
+sudo service openmrs restart
+```
+Finally, the Initializer module should show up here:  
+`https://<OpenMRS-IP>/openmrs/admin/modules/module.list`
+</p>
+</details>
+Once the module is installed, you can create configurations.
+
+Create first a `configuration` folder with the right permissions
+```bash
+sudo cd /opt/openmrs/ && mkdir configuration
+sudo chown -R bahmni:bahmni configuration
+```
+
+Then create or copy your configuration files in each configuration sub-folders (drugs, bahmniforms, concepts, etc.) - See the list [above](#supported-domains-and-default-loading-order) for details about the file structure and conventions.
+
+```bash
+## For Misc concepts for example
+sudo cp /bahmni/misc.csv /opt/openmrs/configuration/concepts/
+sudo chown -R bahmni:bahmni /opt/openmrs/configuration
+```
+To reload your added or updated configurations, restart OpenMRS
+```bash
+sudo service openmrs restart
 ```
 ##### Runtime requirements & compatibility
 * OpenMRS Core 2.1.1 (*required*)
